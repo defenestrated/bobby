@@ -3,7 +3,7 @@ import oscP5.*;
 import netP5.*;
 
 OscP5 oscP5;
-NetAddress myRemoteLocation;
+NetAddress destination;
   
 GazeTrack gt;
 color backgroundColor;
@@ -32,8 +32,9 @@ void setup()
   
   /* start oscP5, listening for incoming messages at port 12000 */
   oscP5 = new OscP5(this,12000);
-  //myRemoteLocation = new NetAddress("127.0.0.1",12345);
-  myRemoteLocation = new NetAddress("10.2.78.42",12345);
+  
+  //destination = new NetAddress("127.0.0.1",12345); //local
+  destination = new NetAddress("10.2.78.42",12345); // remote
 }
 
 void draw()
@@ -59,8 +60,8 @@ void draw()
   eyex.add(finalx);
   eyey.add(finaly);
   
-  oscP5.send(eyex, myRemoteLocation);
-  oscP5.send(eyey, myRemoteLocation);
+  oscP5.send(eyex, destination);
+  oscP5.send(eyey, destination);
 
 }
 
@@ -68,14 +69,14 @@ void gazeStopped()
 {
   backgroundColor = #cccccc;
   gazestatus = new OscMessage("/gazestatus").add(0);
-  oscP5.send(gazestatus, myRemoteLocation);
+  oscP5.send(gazestatus, destination);
 }
 
 void gazeStarted()
 {
   backgroundColor = #ffffff;
   gazestatus = new OscMessage("/gazestatus").add(1);
-  oscP5.send(gazestatus, myRemoteLocation);
+  oscP5.send(gazestatus, destination);
 }
 
 void mousePressed() {
