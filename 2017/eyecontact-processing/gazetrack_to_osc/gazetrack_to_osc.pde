@@ -32,7 +32,8 @@ void setup()
   
   /* start oscP5, listening for incoming messages at port 12000 */
   oscP5 = new OscP5(this,12000);
-  myRemoteLocation = new NetAddress("127.0.0.1",12345);
+  //myRemoteLocation = new NetAddress("127.0.0.1",12345);
+  myRemoteLocation = new NetAddress("10.2.78.42",12345);
 }
 
 void draw()
@@ -66,14 +67,15 @@ void draw()
 void gazeStopped()
 {
   backgroundColor = #cccccc;
-  gazestatus = new OscMessage("/gazestatus/0");
+  gazestatus = new OscMessage("/gazestatus").add(0);
   oscP5.send(gazestatus, myRemoteLocation);
 }
 
 void gazeStarted()
 {
   backgroundColor = #ffffff;
-  gazestatus = new OscMessage("/gazestatus/1");
+  gazestatus = new OscMessage("/gazestatus").add(1);
+  oscP5.send(gazestatus, myRemoteLocation);
 }
 
 void mousePressed() {
