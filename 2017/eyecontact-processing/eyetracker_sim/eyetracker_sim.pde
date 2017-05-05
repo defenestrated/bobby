@@ -6,18 +6,18 @@ NetAddress destination;
 
 color backgroundColor;
 
-PVector avg_center;
+PVector
+  current_position,
+  avg_center,
+  med_center;
 
 int
   cal_start,
   calibration_interval = 2, // how often to grab a new value (in frames)
   calibration_time = 3000; // milliseconds
 
-float
-  offX = 0,
-  offY = 0,
-  finalx = 0,
-  finaly = 0;
+int contact_thresh = 100;
+float current_distance = 0;
 
 OscMessage calibration, gazestatus;
 
@@ -28,22 +28,27 @@ boolean
 
 ArrayList<NetAddress> destinations = new ArrayList<NetAddress>();
 ArrayList<PVector> centers = new ArrayList<PVector>();
+ArrayList<PVector> sample = new ArrayList<PVector>();
+
 Table ipadrs;
 
 void setup() {
-  size(1200, 800);
+  size(400, 400);
   //fullScreen();
   rectMode(CENTER);
   noStroke();
   fill(#4FA25C);
 
+  current_position = new PVector(width/2, height/2);
   avg_center = new PVector(width/2, height/2);
+  med_center = new PVector(width/2, height/2);
 
   backgroundColor = #000000;
 
 
   /* start oscP5, listening for incoming messages at port 12000 */
   oscP5 = new OscP5(this,12000);
+  println("\n\n");
 
   Table ipaddrs = loadTable("broadcastaddresses.csv", "header");
 
@@ -60,28 +65,52 @@ void setup() {
   for(NetAddress n : destinations) {
     println(n.address() + ":" + n.port() + " valid: " + n.isvalid());
   }
+
+  // plug messages into functions
+  // context, fn name, msg pattern
+  oscP5.plug(this, "command", "/command");
+
+
 }
 
 void draw() {
   background(backgroundColor);
-  calibrate();
+  noStroke();
+
+  checkCalibration();
 
   for (PVector point : centers) {
     fill(255,0,255);
-    ellipse(point.x, point.y, 10,10);
+    ellipse(point.x, point.y, 5, 5);
   }
 
   fill(255);
-  ellipse(avg_center.x, avg_center.y, 10, 10);
-  // eyex = new OscMessage("/eyeX");
-  // eyey = new OscMessage("/eyeY");
+  ellipse(med_center.x, med_center.y, 5, 5);
 
-  // eyex.add(finalx);
-  // eyey.add(finaly);
+  fill(255,200);
+  ellipse(avg_center.x, avg_center.y, 5, 5);
 
-  // oscP5.send(eyex, destination);
-  // oscP5.send(eyey, destination);
+  noFill();
+  stroke(255);
+  ellipse(current_position.x, current_position.y, 10, 10);
+  ellipse(med_center.x, med_center.y, contact_thresh*2, contact_thresh*2);
 
+  if (current_distance > contact_thresh) stroke(255,0,0);
+  line(current_position.x, current_position.y, med_center.x, med_center.y);
+
+  current_distance = med_center.dist(current_position);
+
+
+
+}
+
+public void command(String cmd) {
+  println("command received: " + cmd);
+  switch (cmd) {
+  case "calibrate":
+    calibration_greenlight = true;
+    break;
+  }
 }
 
 void broadcast(OscMessage message) {
@@ -105,17 +134,12 @@ void gazeStarted() {
 }
 
 void mouseMoved() {
-  OscMessage eyepos = new OscMessage("/eyeposition");
-
-  eyepos.add(mouseX);
-  eyepos.add(mouseY);
-
-  broadcast(eyepos);
+  current_position.x = mouseX;
+  current_position.y = mouseY;
 }
 
-void calibrate() {
+void checkCalibration() {
 
-  PVector curpos = new PVector(mouseX, mouseY);
 
   if (calibration_greenlight) {
     if (!cal_in_progress) {
@@ -125,7 +149,7 @@ void calibrate() {
 
       centers.clear();
 
-      avg_center.set(curpos);
+      avg_center.set(current_position);
 
       cal_start = millis();
       cal_in_progress = true;
@@ -137,26 +161,37 @@ void calibrate() {
     // calibration already running
     if (millis() - cal_start < calibration_time) {
       if (frameCount % calibration_interval == 0) {
-        centers.add(new PVector(curpos.x, curpos.y));
+        centers.add(new PVector(current_position.x, current_position.y));
 
         for (PVector point : centers) {
           avg_center.add(point);
         }
         avg_center.div(centers.size()+1);
 
-        println("calibration ("+centers.size()+" points): " + avg_center);
+        med_center = pvec_median(centers);
+
+        // println("calibration ("+centers.size()+" points): " + avg_center + " ... " + med_center);
       }
 
 
     }
 
     else {
+      // timer up
+      iscalibrated = true;
       cal_in_progress = false;
     }
-  }
-  calibration = new OscMessage("/calibration");
 
-  // format: center_x, center_y, iscalibrated
+    //send it out
+    calibration = new OscMessage("/calibration");
+    // format: center_x, center_y, iscalibrated
+    calibration.add(avg_center.x);
+    calibration.add(avg_center.y);
+    calibration.add(iscalibrated);
+
+    broadcast(calibration);
+  }
+
 }
 
 void mousePressed() {
