@@ -19,12 +19,18 @@ int
 int contact_thresh = 100;
 float current_distance = 0;
 
-OscMessage calibration, gazestatus;
+OscMessage
+  init,
+  calibration,
+  gazestatus,
+  eyecontact;
 
 boolean
+  show_output = true, // change this to false at runtime
   calibration_greenlight = false,
   cal_in_progress = false,
-  iscalibrated = false;
+  iscalibrated = false,
+  has_contact = false;
 
 ArrayList<NetAddress> destinations = new ArrayList<NetAddress>();
 ArrayList<PVector> centers = new ArrayList<PVector>();
@@ -33,7 +39,7 @@ ArrayList<PVector> sample = new ArrayList<PVector>();
 Table ipadrs;
 
 void setup() {
-  size(400, 400);
+  size(1000, 800);
   //fullScreen();
   rectMode(CENTER);
   noStroke();
@@ -46,8 +52,8 @@ void setup() {
   backgroundColor = #000000;
 
 
-  /* start oscP5, listening for incoming messages at port 12000 */
-  oscP5 = new OscP5(this,12000);
+  /* start oscP5, listening for incoming messages at port 12346 */
+  oscP5 = new OscP5(this,12346);
   println("\n\n");
 
   Table ipaddrs = loadTable("broadcastaddresses.csv", "header");
@@ -66,9 +72,15 @@ void setup() {
     println(n.address() + ":" + n.port() + " valid: " + n.isvalid());
   }
 
+
+  maxinit();
+
+
   // plug messages into functions
   // context, fn name, msg pattern
   oscP5.plug(this, "command", "/command");
+  oscP5.plug(this, "setthresh", "/setthresh");
+  oscP5.plug(this, "maxinit", "/maxinit");
 
 
 }
@@ -79,29 +91,37 @@ void draw() {
 
   checkCalibration();
 
-  for (PVector point : centers) {
-    fill(255,0,255);
-    ellipse(point.x, point.y, 5, 5);
+  current_distance = med_center.dist(current_position);
+  if (current_distance > contact_thresh) has_contact = false;
+  else has_contact = true;
+
+  if (show_output) {
+    for (PVector point : centers) {
+      fill(255,0,255);
+      ellipse(point.x, point.y, 5, 5);
+    }
+
+    fill(255);
+    ellipse(med_center.x, med_center.y, 5, 5);
+
+    noFill();
+    stroke(255);
+    ellipse(avg_center.x, avg_center.y, 5, 5);
+
+    ellipse(current_position.x, current_position.y, 10, 10);
+    ellipse(med_center.x, med_center.y, contact_thresh*2, contact_thresh*2);
+
+    if (!has_contact) stroke(255,0,0);
+    line(current_position.x, current_position.y, med_center.x, med_center.y);
   }
 
-  fill(255);
-  ellipse(med_center.x, med_center.y, 5, 5);
 
-  fill(255,200);
-  ellipse(avg_center.x, avg_center.y, 5, 5);
+  eyecontact = new OscMessage("/eyecontact");
+  eyecontact.add(current_position.x);
+  eyecontact.add(current_position.y);
+  eyecontact.add(has_contact);
 
-  noFill();
-  stroke(255);
-  ellipse(current_position.x, current_position.y, 10, 10);
-  ellipse(med_center.x, med_center.y, contact_thresh*2, contact_thresh*2);
-
-  if (current_distance > contact_thresh) stroke(255,0,0);
-  line(current_position.x, current_position.y, med_center.x, med_center.y);
-
-  current_distance = med_center.dist(current_position);
-
-
-
+  broadcast(eyecontact);
 }
 
 public void command(String cmd) {
@@ -111,6 +131,19 @@ public void command(String cmd) {
     calibration_greenlight = true;
     break;
   }
+}
+
+public void setthresh(int new_thresh) {
+  contact_thresh = new_thresh;
+  println("new thresh set to: "+new_thresh);
+}
+
+public void maxinit() {
+  println("sending max init: " + width + " " + height);
+  init = new OscMessage("/init/size");
+  init.add(width);
+  init.add(height);
+  broadcast(init);
 }
 
 void broadcast(OscMessage message) {
@@ -187,6 +220,7 @@ void checkCalibration() {
     // format: center_x, center_y, iscalibrated
     calibration.add(avg_center.x);
     calibration.add(avg_center.y);
+    calibration.add(cal_in_progress);
     calibration.add(iscalibrated);
 
     broadcast(calibration);
