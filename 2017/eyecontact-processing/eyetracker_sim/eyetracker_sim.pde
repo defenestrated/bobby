@@ -1,8 +1,11 @@
+import gazetrack.*;
 import oscP5.*;
 import netP5.*;
 
 OscP5 oscP5;
 NetAddress destination;
+
+GazeTrack gt;
 
 color backgroundColor;
 
@@ -26,6 +29,7 @@ OscMessage
   eyecontact;
 
 boolean
+  simulate = true,
   show_output = true, // change this to false at runtime
   calibration_greenlight = false,
   cal_in_progress = false,
@@ -50,7 +54,7 @@ void setup() {
   med_center = new PVector(width/2, height/2);
 
   backgroundColor = #000000;
-
+  if (simulate == false) gt = new GazeTrack(this);
 
   /* start oscP5, listening for incoming messages at port 12346 */
   oscP5 = new OscP5(this,12346);
@@ -90,6 +94,11 @@ void draw() {
   noStroke();
 
   checkCalibration();
+
+  if (simulate == false) {
+    current_position.x = gt.getGazeX();
+    current_position.y = gt.getGazeY();
+  }
 
   current_distance = med_center.dist(current_position);
   if (current_distance > contact_thresh) has_contact = false;
@@ -167,8 +176,10 @@ void gazeStarted() {
 }
 
 void mouseMoved() {
-  current_position.x = mouseX;
-  current_position.y = mouseY;
+  if (simulate == true) {
+    current_position.x = mouseX;
+    current_position.y = mouseY;
+  }
 }
 
 void checkCalibration() {
