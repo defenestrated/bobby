@@ -27,7 +27,7 @@ typetags: *i* *i*
 
 ### /gazestatus *value*
 typetag: *i* (0 or 1)
-*sent only on change of status*
+  *sent only on change of status*
 
 ### /calibration *focus_x* *focus_y* *in_progress* *is_calibrated*
 typetags: *f* *f* *i* *i*
@@ -38,21 +38,21 @@ typetags: *f* *f* *i* *i*
 
 ### /maxinit
 [no typetag]
-*this is a handshake between processing and max to get everything set up*
+  *this is a handshake between processing and max to get everything set up*
 
 ### /contactramp *value*
 typetag: *f*
-*this is the value that slides down on broken contact, up on restored contact. values are 0.-1.*
+  *this is the value that slides down on broken contact, up on restored contact. values are 0.-1.*
 
 ### /command *command_string*
 typetag: *s*
-*the only use of this at the moment is to tell processing to start calibration*
+  *the only use of this at the moment is to tell processing to start calibration*
 
 ### /phase *phase_string*
 typetag: *s*
-possibilities: *idle, calibration, main, stop*
+  possibilities: *idle, calibration, main, stop*
 
 ### setthresh *threshhold_value*
 typetag: *i*
-*used to set the distance threshhold that defines eye contact*
+  *used to set the distance threshhold that defines eye contact*
 
