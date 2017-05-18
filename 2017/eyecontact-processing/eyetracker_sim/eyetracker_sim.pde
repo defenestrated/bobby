@@ -29,8 +29,8 @@ OscMessage
   eyecontact;
 
 boolean
-  simulate = true,
-  show_output = true, // change this to false at runtime
+  simulate = true, // <---- SET THIS TO FALSE TO ENABLE GAZETRACKING
+  show_output = true, // changing this to false disables graphic output, possibly speeding things up a bit
   calibration_greenlight = false,
   cal_in_progress = false,
   iscalibrated = false,
