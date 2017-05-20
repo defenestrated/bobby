@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 34.0, 79.0, 758.0, 933.0 ],
+		"rect" : [ 34.0, 79.0, 1244.0, 933.0 ],
 		"bgcolor" : [ 1.0, 1.0, 1.0, 1.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 1,
@@ -1511,7 +1511,7 @@
 													"outlettype" : [ "" ],
 													"patching_rect" : [ 9.5, 377.0, 83.0, 22.0 ],
 													"style" : "",
-													"text" : "0., 0. 1138"
+													"text" : "0., 1. 0"
 												}
 
 											}
@@ -2208,7 +2208,7 @@
 													"outlettype" : [ "" ],
 													"patching_rect" : [ 107.0, 377.0, 83.0, 22.0 ],
 													"style" : "",
-													"text" : "1., 1. 1138"
+													"text" : "0., 0. 0"
 												}
 
 											}
@@ -2318,7 +2318,7 @@
 													"outlettype" : [ "" ],
 													"patching_rect" : [ 200.0, 377.0, 83.0, 22.0 ],
 													"style" : "",
-													"text" : "1., 1. 1138"
+													"text" : "0., 0. 0"
 												}
 
 											}
@@ -3932,7 +3932,7 @@
 					"presentation" : 1,
 					"presentation_rect" : [ 558.666687, 417.5, 149.0, 19.0 ],
 					"style" : "",
-					"text" : "1.28 seconds"
+					"text" : "0.00 seconds"
 				}
 
 			}
@@ -3955,7 +3955,6 @@
 				"box" : 				{
 					"id" : "obj-208",
 					"maxclass" : "slider",
-					"min" : 50.0,
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
@@ -3963,7 +3962,7 @@
 					"patching_rect" : [ 745.000061, 201.853714, 198.666672, 42.0 ],
 					"presentation" : 1,
 					"presentation_rect" : [ 354.0, 401.536224, 200.0, 40.0 ],
-					"size" : 9950.0,
+					"size" : 10000.0,
 					"style" : ""
 				}
 
@@ -8764,10 +8763,10 @@
 			}
  ],
 		"parameters" : 		{
-			"obj-4::obj-163" : [ "live.gain~[1]", "live.gain~", 0 ],
-			"obj-4::obj-39" : [ "live.gain~[3]", "live.gain~", 0 ],
 			"obj-4::obj-27" : [ "live.gain~", "live.gain~", 0 ],
-			"obj-182" : [ "live.gain~[2]", "live.gain~", 0 ]
+			"obj-182" : [ "live.gain~[2]", "live.gain~", 0 ],
+			"obj-4::obj-163" : [ "live.gain~[1]", "live.gain~", 0 ],
+			"obj-4::obj-39" : [ "live.gain~[3]", "live.gain~", 0 ]
 		}
 ,
 		"dependency_cache" : [ 			{
