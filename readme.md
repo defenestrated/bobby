@@ -47,6 +47,11 @@ typetag: *f*
 
 *this is the value that slides down on broken contact, up on restored contact. values are 0.-1.*
 
+### /contactramp100 *value*
+typetag: *i*
+
+*same as "contactramp" above, but values are integers and from 0-100*
+
 ### /command *command_string*
 typetag: *s*
 
