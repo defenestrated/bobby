@@ -7,8 +7,10 @@ modify a route object to remap incoming midi notes
 */
 
 // inlets + outlets
-inlets = 2
+inlets = 3
 outlets = 2
+
+var debug = false;
 
 var therouter
 // var t1 = this.patcher.newdefault(10,750, "t", "b i")
@@ -21,14 +23,18 @@ var output_prepends = []
 
 var offset = 0
 
+var shuffle = false
+
 init()
 
 function logger(msg) {
-  post()
-  for (var m = 0; m < arguments.length; m++) {
-    post(arguments[m])
+  if (debug) {
+    post()
+    for (var m = 0; m < arguments.length; m++) {
+      post(arguments[m])
+    }
+    post()
   }
-  post()
 }
 function init() {
   logger("js ready")
@@ -53,7 +59,7 @@ function iterator(b) {
 function addinput(note_to_route) {
   routes.push(note_to_route)
   updaterouter()
-  map()
+  map(shuffle)
 }
 
 function setoffset(val) {
@@ -66,10 +72,18 @@ function setoffset(val) {
   }
 }
 
-function int(int_value) {
-  if (inlet == 1) {
+function msg_int(int_value) {
+  switch(this.inlet) {
+  case 1:
     // in the right side
     setoutputs(int_value)
+    break
+  case 2:
+    shuffle = int_value
+    if (shuffle == 1) randomize()
+    else organize()
+    logger("shuffle:", shuffle)
+    break
   }
 }
 
@@ -96,37 +110,40 @@ function setoutputs(number_of_outputs) {
     cmp.patcher.connect(pre, 0, superpatcher_outs[1], 0)
   }
 
-  map()
+  map(shuffle)
 }
 
-function map() {
+function map(shuffle) {
   var cmp = this
   var ins = routes.length,
       outs = outputs.length,
       ratio
-  post()
-  post(routes.length, outputs.length)
+  // post()
+  logger(routes.length, outputs.length)
 
   var group_assign = function(position) {
     var pos = position/ratio
     var group = Math.floor(pos)
-    post("assigning", position, pos, group)
+    logger("assigning", position, pos, group)
     return group
   }
 
-  function patchem(more_ins_than_outs) {
-    // post("patching", ratio)
-    var times = (more_ins_than_outs) ? ins : outs
-    logger("times", times)
-    for (var i = 0; i < times; i++) {
+  var patchem = function(more_ins_than_outs) {
+    var real_outs = (shuffle) ? _.shuffle(outputs) : outputs
+
+    var howmany = (more_ins_than_outs) ? ins : outs
+    logger("times", howmany)
+    _.times(howmany, function(i) {
+// /      var router_outlet, number_box, which_number
+
       var router_outlet = (more_ins_than_outs) ? i : group_assign(i)
-      var number_box = (more_ins_than_outs) ? outputs[group_assign(i)] : outputs[i]
+      var number_box = (more_ins_than_outs) ? real_outs[group_assign(i)] : real_outs[i]
       var which_number = (more_ins_than_outs) ? group_assign(i) : i
 
-      logger("patching", router_outlet, which_number)
+      // logger("patching", router_outlet, which_number)
 
       cmp.patcher.connect(therouter, router_outlet, number_box, 0)
-    }
+    })
   }
 
   if (ins > 0 && outs > 0) {
@@ -141,13 +158,37 @@ function map() {
   }
 
 
-  post()
+  // post()
 }
 
+function disconnect() {
+  var cmp = this;
+  _(outputs).each(function(out, ix) {
+    _(routes).each(function(route, ixx) {
+      cmp.patcher.disconnect(therouter, ixx, out, 0);
+    })
+  })
+}
 
+function randomize() {
+  disconnect()
+  shuffle = true
+  map(shuffle)
+}
 
+function organize() {
+  disconnect()
+  shuffle = false
+  map(shuffle)
+}
 
-function clear() {
+function resetroutes() {
+  routes = []
+  updaterouter()
+  map()
+}
+
+function resetall() {
   routes = []
   outputs = []
   init()
@@ -162,5 +203,5 @@ function updaterouter() {
   this.patcher.remove(therouter)
   therouter = this.patcher.newdefault(self.rect[0]+30, self.rect[1]+30, "route", routes)
   this.patcher.connect(this.box, 0, therouter, 0)
-  map()
+  map(shuffle)
 }
